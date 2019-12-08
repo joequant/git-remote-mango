@@ -7,7 +7,7 @@ var debug = require('debug')('mango')
 
 var ipfs;
 if (process.env['IPFS_PATH'] !== "") {
-    ipfs = new IPFS(process.env['IPFS_PATH'])
+    ipfs = new IPFS({"repo": process.env['IPFS_PATH']})
 } else {
     ipfs = new IPFS()
 }
