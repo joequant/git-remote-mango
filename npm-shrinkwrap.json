@@ -24,7 +24,7 @@
 	},
 	"libp2p-floodsub": {
 	    "version": "0.18.0"
-	}
+	},
 	"libp2p-webrtc-star": {
 	    "version": "0.16.1",
 	    "dependencies": {
