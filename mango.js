@@ -5,6 +5,9 @@ var crypto = require('crypto')
 var IPFS = require('ipfs')
 var debug = require('debug')('mango')
 const CID = require('cids')
+const dagPB = require('ipld-dag-pb')
+const DAGNode = dagPB.DAGNode
+const multicodec = require('multicodec')
 
 var ipfs;
 if (process.env['IPFS_PATH'] !== "") {
@@ -33,24 +36,28 @@ function gitHash (obj, data) {
 
 // FIXME: move into context?
 function ipfsPut (buf, enc, cb) {
-    debug('-- IPFS PUT')
-  ipfs.object.put(buf, { enc }, function (err, node) {
-    if (err) {
-      return cb(err)
-    }
-    debug('  hash', node.toString())
-    cb(null, node.toString())
+  debug('-- IPFS PUT')
+    const dagNode = new DAGNode(buf)
+    ipfs.dag.put(dagNode, {
+	format: multicodec.DAG_PB,
+	hashAlg: multicodec.SHA2_256
+    } , function (err, node) {
+	if (err) {
+	    return cb(err)
+	}
+	debug('  hash', node.toString())
+	cb(null, node.toString())
   })
 }
 
 // FIXME: move into context?
 function ipfsGet (key, cb) {
   debug('-- IPFS GET', key)
-  ipfs.object.get(key, { enc: 'base58' }, function (err, node) {
+  ipfs.dag.get(key, function (err, node) {
     if (err) {
       return cb(err)
     }
-    cb(null, node.toJSON().data)
+    cb(null, node.value.Data)
   })
 }
 
