@@ -38,8 +38,8 @@ function ipfsPut (buf, enc, cb) {
     if (err) {
       return cb(err)
     }
-    debug('  hash', node.toString())
-    cb(null, node.toString())
+    debug('  hash', node.toJSON().multihash)
+    cb(null, node.toJSON().multihash)
   })
 }
 
