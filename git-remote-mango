@@ -5,6 +5,7 @@ var pull = require('pull-stream')
 var gitRemoteHelper = require('pull-git-remote-helper')
 var Mango = require('./mango.js')
 var url = require('url')
+var debug = require('debug')('git-remote-mango')
 
 function die () {
   console.error.apply(console, arguments)
@@ -22,8 +23,14 @@ if (repo.protocol !== 'mango:') {
   die('Invalid protocol')
 }
 
+async function main() {
+    await Mango.init()
+    debug('ready to pull')   
 pull(
   toPull(process.stdin),
   gitRemoteHelper(new Mango(repo.hostname, repo.auth)),
   toPull(process.stdout)
 )
+        debug('pulling')
+}
+main()

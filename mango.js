@@ -4,13 +4,8 @@ var multicb = require('multicb')
 var crypto = require('crypto')
 var IPFS = require('ipfs')
 var debug = require('debug')('mango')
-
+const CID = require('cids')
 var ipfs;
-if (process.env['IPFS_PATH'] !== "") {
-    ipfs = new IPFS({"repo": process.env['IPFS_PATH']})
-} else {
-    ipfs = new IPFS()
-}
 var Web3 = require('web3')
 var rlp = require('rlp')
 var ethUtil = require('ethereumjs-util')
@@ -32,8 +27,8 @@ function ipfsPut (buf, enc, cb) {
     if (err) {
       return cb(err)
     }
-    debug('  hash', node.toJSON().multihash)
-    cb(null, node.toJSON().multihash)
+      debug('  hash', node.toString())
+      cb(null, node.toString())
   })
 }
 
@@ -63,6 +58,13 @@ constructor(address, user) {
 
   this.repoContract = this.web3.eth.contract(repoABI).at(address)
 }
+
+    static async init() {
+	debug('init')
+	ipfs = new IPFS({"repo": '/home/user/jsipfs',
+			 "start": false})
+	await ipfs.ready
+    }
 
 _loadObjectMap(cb) {
   debug('LOADING OBJECT MAP')
