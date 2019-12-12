@@ -33,6 +33,7 @@
     "stream-to-pull-stream": "^1.7.3",
     "web3": "^0.20.7",
     "cids": "^0.7.1",
-    "ipld-dag-pb": "v0.18.1"
+    "ipld-dag-pb": "v0.18.1",
+    "ipfs-http-client": "v40.1.0"
   }
 }

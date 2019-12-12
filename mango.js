@@ -8,9 +8,15 @@ const CID = require('cids')
 const dagPB = require('ipld-dag-pb')
 const DAGNode = dagPB.DAGNode
 const multicodec = require('multicodec')
+const ipfsClient = require('ipfs-http-client')
 
 var ipfs;
-if (process.env['IPFS_PATH'] !== "") {
+
+if (process.env['IPFS_URI']) {
+  debug('connecting', process.env['IPFS_URI'])
+  ipfs = ipfsClient(process.env['IPFS_URI'])
+}
+else if (process.env['IPFS_PATH']) {
     ipfs = new IPFS({
       'repo': process.env['IPFS_PATH'],
       'start': false
@@ -39,10 +45,11 @@ function ipfsPut (buf, enc, cb) {
   debug('-- IPFS PUT')
     const dagNode = new DAGNode(buf)
     ipfs.dag.put(dagNode, {
-	format: multicodec.DAG_PB,
-	hashAlg: multicodec.SHA2_256
+	format: 'dag-pb',
+	hashAlg: 'sha2-256'
     } , function (err, node) {
 	if (err) {
+      debug('ipfsPut err=', err)
 	    return cb(err)
 	}
 	debug('  hash', node.toString())
