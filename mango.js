@@ -41,29 +41,22 @@ function gitHash (obj, data) {
 }
 
 // FIXME: move into context?
-function ipfsPut (buf, enc, cb) {
+function ipfsPut (buf, enc) {
   debug('-- IPFS PUT')
-    const dagNode = new DAGNode(buf)
-    ipfs.dag.put(dagNode, {
-	format: 'dag-pb',
-	hashAlg: 'sha2-256'
-}).then(node=> {
-  debug('  hash', node.toString())
-  cb(null, node.toString())
-}).catch(err=> {
-      debug('ipfsPut err=', err)
-	    return cb(err)
-	})
+  return ipfs.dag.put(new DAGNode(buf), {
+      format: 'dag-pb',
+      hashAlg: 'sha2-256'
+  }).then(
+      node=> node.toString()
+  )
 }
 
 // FIXME: move into context?
-function ipfsGet (key, cb) {
+function ipfsGet (key) {
   debug('-- IPFS GET', key)
-  ipfs.dag.get(key).then(node => {
-    cb(null, node.value.Data)
-  }).catch(err => {
-      return cb(err)
-  })
+  return ipfs.dag.get(key).then(
+      node => node.value.Data
+  )
 }
 
 class Repo {
@@ -91,14 +84,11 @@ _loadObjectMap(cb) {
   self.snapshotGetAll(function (err, res) {
     if (err) return cb(err)
 
-    async.each(res, function (item, cb) {
-      ipfsGet(item, function (err, data) {
-        if (err) return cb(err)
+    async.each(res, function (item, callback) {
+      ipfsGet(item).then(data => {
         Object.assign(self._objectMap, snapshot.parse(data))
         cb()
-      })
-    }, function (err) {
-      cb(err)
+      }, err => cb(err))
     })
   })
 }
@@ -214,9 +204,8 @@ getObject(hash, cb) {
       return cb('Object not present with key ' + hash)
     }
 
-    ipfsGet(self._objectMap[hash], function (err, data) {
-      if (err) return cb(err)
-
+    ipfsGet(self._objectMap[hash]).then(
+      data => {
       var res = rlp.decode(data)
 
       return cb(null, {
@@ -224,7 +213,10 @@ getObject(hash, cb) {
         length: parseInt(res[1].toString(), 10),
         read: pull.once(res[2])
       })
-    })
+    }).catch(
+      err => {
+        cb(err)
+      })
   })
 }
 
@@ -236,15 +228,12 @@ update(readRefUpdates, readObjects, cb) {
 
   if (readObjects) {
     var doneReadingObjects = function () {
-      ipfsPut(snapshot.create(self._objectMap), null, function (err, ipfsHash) {
-        if (err) {
-          return done(err)
-        }
-
-        self.snapshotAdd(ipfsHash, function () {
-          done()
-        })
-      })
+	ipfsPut(snapshot.create(self._objectMap)).then(
+	    ipfsHash => {
+		self.snapshotAdd(ipfsHash, () => done())
+	    },
+	    err => done(err)
+	)
     }
 
     // FIXME
@@ -269,16 +258,15 @@ update(readRefUpdates, readObjects, cb) {
 
           var data = rlp.encode([ ethUtil.toBuffer(object.type), ethUtil.toBuffer(object.length.toString()), buf ])
 
-          ipfsPut(data, null, function (err, ipfsHash) {
-            if (err) {
-              return doneReadingObjects(err)
-            }
-
-            self._objectMap[hash] = ipfsHash
-            readObjects(null, next)
+            ipfsPut(data).then(
+		ipfsHash => {
+		    self._objectMap[hash] = ipfsHash
+		    readObjects(null, next)
+		},
+		err => doneReadingObjects(err)
+            )
           })
-        })
-      )
+        )
     })
   }
 
