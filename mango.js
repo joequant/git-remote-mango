@@ -47,28 +47,24 @@ function ipfsPut (buf, enc, cb) {
     ipfs.dag.put(dagNode, {
 	format: 'dag-pb',
 	hashAlg: 'sha2-256'
-    } , function (err, node) {
-	if (err) {
+}).then(node=> {
+  debug('  hash', node.toString())
+  cb(null, node.toString())
+}).catch(err=> {
       debug('ipfsPut err=', err)
 	    return cb(err)
-	}
-	debug('  hash', node.toString())
-	cb(null, node.toString())
-  })
+	})
 }
 
 // FIXME: move into context?
 function ipfsGet (key, cb) {
   debug('-- IPFS GET', key)
-  ipfs.dag.get(key, function (err, node) {
-    if (err) {
-      return cb(err)
-    }
+  ipfs.dag.get(key).then(node => {
     cb(null, node.value.Data)
+  }).catch(err => {
+      return cb(err)
   })
 }
-
-
 
 class Repo {
 
