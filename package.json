@@ -27,6 +27,7 @@
     "debug": "^4.1.1",
     "ipfs": "^0.40.0",
     "multicb": "^1.2.2",
+    "multicodec": "^1.0.0",
     "pull-git-remote-helper": "^2.0.0",
     "pull-stream": "^3.6.14",
     "rlp": "^2.2.4",
